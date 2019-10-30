@@ -1,18 +1,13 @@
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/vaadin-flow/Lobby#?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+# Ousi
 
-# Skeleton Starter for Vaadin
+Ousi is a cross-platform social network analysis software built with web technology. It is written in Java with `Vaadin` to provide the user interface in your browser. Of course you can run it on your local computer. Or you may run it on a cluster and manipulate it with your tablet. So it's both scalable and portable.
 
-This project can be used as a starting point to create your own Vaadin application.
-It has the necessary dependencies and files to help you get started.
+The word "ousi" means the fibers in the root of lotus in Chinese. It is often used as a metaphor of the affection between people. The root of lotus may break apart, whereas the affection keeps. So I'm using this word to remind us of the links between people. I hope SNA researchers will not forget why they initially entered this field. It's the people, not the network or anything else.
 
-The best way to use it is via [vaadin.com/start](https://vaadin.com/start) - you can get only the necessary parts and choose the package naming you want to use.
-There is also a [getting started tutorial](https://vaadin.com/learn) based on this project.
+---
 
-To access it directly from github, clone the repository and import the project to the IDE of your choice as a Maven project. You need to have Java 8 or 11 installed.
+# 藕丝
 
-Run using `mvn jetty:run` and open [http://localhost:8080](http://localhost:8080) in the browser.
+藕丝是一款基于网络技术的跨平台社会网络分析软件，由Java语言与`Vaadin`框架写就，以此提供一个能够运行于浏览器中的用户界面。当然，你可以在你的电脑上运行藕丝，但你也可以在集群上来运行这款软件，并在你平板电脑的浏览器中来操作它。从这个角度上来讲，藕丝同时具备了可扩展性和可移动性。
 
-If you want to run your app locally in the production mode, run `mvn jetty:run -Pproduction`.
-
-For a full Vaadin application example, there are more choices available also from [vaadin.com/start](https://vaadin.com/start) page.
-
+“藕丝”，即莲藕中的纤维，常被用来比喻人与人之间的绵绵感情。莲藕折断，藕丝却依旧牵连。这使人想起人与人之间的关系。我希望，社会网络研究者们能够不忘初心。比起社会网络或是其它什么，更重要的，永远是“人”。
