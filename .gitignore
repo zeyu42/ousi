@@ -21,3 +21,6 @@ drivers/
 error-screenshots/
 
 webpack.generated.js
+
+# Config files the program generates
+settings/
