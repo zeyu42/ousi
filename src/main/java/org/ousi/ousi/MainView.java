@@ -2,11 +2,15 @@ package org.ousi.ousi;
 
 
 import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -49,7 +53,7 @@ public class MainView extends AppLayout {
         MenuItem helpMenuItem = menu.addItem("Help");
         SubMenu helpSubMenu = helpMenuItem.getSubMenu();
         helpSubMenu.addItem("Help");
-        helpSubMenu.addItem("About");
+        helpSubMenu.addItem("About", event1 -> showAboutDialog());
 
         addToNavbar(true, img, menu);
 
@@ -76,6 +80,15 @@ public class MainView extends AppLayout {
         mainLayout.setSplitterPosition(62);
 
         setContent(mainLayout);
+    }
+
+    private static void showAboutDialog() {
+        Dialog aboutDialog = new Dialog();
+        VerticalLayout layout = new VerticalLayout();
+        layout.add(new Label("藕丝：一款自由的社会网络分析软件。"));
+        layout.add(new Button("OK", event2 -> aboutDialog.close()));
+        aboutDialog.add(layout);
+        aboutDialog.open();
     }
 }
 
