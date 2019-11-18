@@ -20,7 +20,12 @@ import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.PWA;
+import com.vaadin.flow.server.StreamResource;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 
 /**
@@ -35,9 +40,9 @@ public class MainView extends AppLayout {
 
     public MainView() {
         // Navigation Bar
-        // Logo (Currently using Vaadin's logo)
-        Image img = new Image("https://i.imgur.com/GPpnszs.png", "Vaadin Logo");
-        img.setHeight("44px");
+        // Logo
+        Image logoImage = new Image(streamResource(), "Ousi Logo");
+        logoImage.setHeight("44px");
         // Menu Bar
         MenuBar menu = new MenuBar();
         // File...
@@ -68,7 +73,7 @@ public class MainView extends AppLayout {
         helpSubMenu.addItem("Help");
         helpSubMenu.addItem("About", event -> showAboutDialog());
 
-        addToNavbar(true, img, menu);
+        addToNavbar(true, logoImage, menu);
 
         // Main Layout
         SplitLayout mainLayout = new SplitLayout();
@@ -98,6 +103,29 @@ public class MainView extends AppLayout {
         mainLayout.setSplitterPosition(62);
 
         setContent(mainLayout);
+    }
+
+    private static StreamResource streamResource() {
+        try {
+            File file = new File("src/main/webapp/img/logo.png");
+            FileInputStream fileInputStream = new FileInputStream(file);
+            return new StreamResource("logo.png", () -> {
+                try {
+                    byte[] bytes = new byte[(int) file.length()];
+                    int n = fileInputStream.read(bytes);
+                    if (n == 0) {
+                        throw new IOException();
+                    }
+                    return new ByteArrayInputStream(bytes);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private void showCreateRandomNetworkDialog() {
