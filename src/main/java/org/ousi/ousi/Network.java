@@ -17,6 +17,14 @@ public class Network extends DefaultDirectedWeightedGraph<Vertex, DefaultWeighte
         label = ((Integer)id).toString();
     }
 
+    public Network(boolean isSubNetwork) {
+        super(DefaultWeightedEdge.class);
+        if (!isSubNetwork) {
+            id = count++;
+        }
+        label = ((Integer)id).toString();
+    }
+
     public String getLabel() {
         return label;
     }

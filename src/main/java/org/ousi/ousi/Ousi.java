@@ -1,5 +1,9 @@
 package org.ousi.ousi;
 
+import org.jgrapht.graph.DefaultWeightedEdge;
+
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 public class Ousi {
@@ -18,7 +22,7 @@ public class Ousi {
         return subNetworks;
     }
 
-    public void createRandomNetwork(int n, double p) {
+    void createRandomNetwork(int n, double p) {
         networks.addLast(RandomGraphFactory.getRandomNetwork(n, p));
         subNetworks.addLast(subNetwork(networks.getLast()));
     }
@@ -27,17 +31,19 @@ public class Ousi {
         if (settings.getUseDegreeThreshold()) {
             int degreeThreshold = settings.getDegreeThreshold();
             int n = network.vertexSet().size();
-            Network subNetwork = new Network();
+            Network subNetwork = new Network(true);
+            HashSet<Vertex> vertices = new HashSet<>();
             // Add vertices whose degree are no less than the threshold to the subNetwork
             for (Vertex vertex : network.vertexSet()) {
                 if (network.degreeOf(vertex) >= degreeThreshold) {
                     subNetwork.addVertex(vertex);
+                    vertices.add(vertex);
                 }
             }
             // Add the edges between those vertices to the subgraph
             for (Vertex vertex1 : network.vertexSet()) {
                 for (Vertex vertex2 : network.vertexSet()) {
-                    if (network.containsEdge(vertex1, vertex2)) {
+                    if (vertices.contains(vertex1) && vertices.contains(vertex2) && network.containsEdge(vertex1, vertex2)) {
                         subNetwork.addEdge(vertex1, vertex2, network.getEdge(vertex1, vertex2));
                     }
                 }
