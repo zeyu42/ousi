@@ -1,6 +1,8 @@
 package org.ousi.ousi;
 
 
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.contextmenu.MenuItem;
@@ -15,8 +17,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
-import com.vaadin.flow.component.textfield.NumberField;
-import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.PWA;
 
@@ -49,7 +50,7 @@ public class MainView extends AppLayout {
         // Generate...
         MenuItem generateMenuItem = menu.addItem("Generate");
         SubMenu generateSubMenu = generateMenuItem.getSubMenu();
-        generateSubMenu.addItem("Random graph", event -> showCreateRandomNetworkDialog());
+        generateSubMenu.addItem("Random Network", event -> showCreateRandomNetworkDialog());
 
         // Transform...
         MenuItem transformMenuItem = menu.addItem("Transform");
@@ -75,10 +76,12 @@ public class MainView extends AppLayout {
         SplitLayout leftLayout = new SplitLayout();
         leftLayout.setOrientation(SplitLayout.Orientation.VERTICAL);
         SplitLayout visualizationLayout = new SplitLayout(); // Use this only when user displays >1 graphs
-        TextArea outputTextArea = new TextArea();
+        Accordion outputAccordion = new Accordion();
+        ousi.setOutputAccordion(outputAccordion);
         leftLayout.addToPrimary(visualizationLayout);
-        leftLayout.addToSecondary(outputTextArea);
+        leftLayout.addToSecondary(outputAccordion);
         leftLayout.addThemeVariants(SplitLayoutVariant.LUMO_SMALL);
+
 
         networkGrid.setItems(ousi.getNetworks());
         networkGrid.addColumn(Network::getLabel).setHeader("Label");
@@ -98,24 +101,33 @@ public class MainView extends AppLayout {
     }
 
     private void showCreateRandomNetworkDialog() {
+        // If user's input is invalid, an exception will be thrown and the program will on running.
         Dialog createRandomNetworkDialog = new Dialog();
         FormLayout layout = new FormLayout();
-        NumberField nNumberField = new NumberField();
-        nNumberField.setLabel("# of Nodes");
-        nNumberField.setPlaceholder("10");
-        NumberField pNumberField = new NumberField();
-        pNumberField.setLabel("Link prob.");
-        pNumberField.setPlaceholder("0.5");
-        layout.add(nNumberField, pNumberField);
+        TextField nTextField = new TextField();
+        nTextField.setAutofocus(true);
+        nTextField.setLabel("# of Nodes");
+        nTextField.setPlaceholder("10");
+        TextField pTextField = new TextField();
+        pTextField.setLabel("Link prob.");
+        pTextField.setPlaceholder("0.5");
+        layout.add(nTextField, pTextField);
 
         HorizontalLayout buttonLayout = new HorizontalLayout();
         Button createButton = new Button("Create", event -> {
-            int n = nNumberField.getValue().intValue();
-            double p = pNumberField.getValue();
+            if (nTextField.getValue().equals("")) {
+                nTextField.setValue(nTextField.getPlaceholder());
+            }
+            if (pTextField.getValue().equals("")) {
+                pTextField.setValue(pTextField.getPlaceholder());
+            }
+            int n = Integer.parseInt(nTextField.getValue());
+            double p = Double.parseDouble(pTextField.getValue());
             ousi.createRandomNetwork(n, p);
             networkGrid.getDataProvider().refreshAll();
             createRandomNetworkDialog.close();
         });
+        createButton.addClickShortcut(Key.ENTER);
         Button cancelButton = new Button("Cancel", event -> createRandomNetworkDialog.close());
         buttonLayout.add(createButton, cancelButton);
 

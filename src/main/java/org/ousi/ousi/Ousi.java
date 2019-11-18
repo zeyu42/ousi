@@ -1,8 +1,8 @@
 package org.ousi.ousi;
 
-import org.jgrapht.graph.DefaultWeightedEdge;
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.html.Span;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -10,6 +10,9 @@ public class Ousi {
 
     // Currently, settings only include info about visualization threshold.
     private Settings settings = new Settings();
+
+    // The output accordion created in MainView.java and to be set from there
+    private Accordion outputAccordion = null;
 
     private LinkedList<Network> networks = new LinkedList<>();
     private LinkedList<Network> subNetworks = new LinkedList<>(); // The reduced networks for visualization
@@ -25,7 +28,9 @@ public class Ousi {
     void createRandomNetwork(int n, double p) {
         networks.addLast(RandomGraphFactory.getRandomNetwork(n, p));
         subNetworks.addLast(subNetwork(networks.getLast()));
+        addToAccordion("Generate -> Random Network", "Created random network with " + n + " nodes and " + p + " link prob.\n");
     }
+
 
     private Network subNetwork(Network network) {
         if (settings.getUseDegreeThreshold()) {
@@ -70,6 +75,14 @@ public class Ousi {
 //        ousi.getSettings().writeSettings();
         System.out.println(ousi.getSettings().getUseDegreeThreshold());
         System.out.println(ousi.getSettings().getDegreeThreshold());
+    }
+
+    void setOutputAccordion(Accordion outputAccordion) {
+        this.outputAccordion = outputAccordion;
+    }
+
+    private void addToAccordion(String panelLabel, String text) {
+        outputAccordion.add(panelLabel, new Span(text));
     }
 
 }
