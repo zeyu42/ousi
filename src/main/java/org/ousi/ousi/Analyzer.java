@@ -4,14 +4,14 @@ import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 public class Analyzer {
-    private static double getDensity(Graph<Vertex, DefaultWeightedEdge> graph) {
-        int ne = graph.edgeSet().size();
-        int nv = graph.vertexSet().size();
+    private static double getDensity(Network network) {
+        int ne = network.edgeSet().size();
+        int nv = network.vertexSet().size();
         return (float)ne / nv / (nv - 1);
     }
 
-    public static String densityString(Graph<Vertex, DefaultWeightedEdge> graph) {
-        double density = getDensity(graph);
+    public static String densityString(Network network) {
+        double density = getDensity(network);
         return "Density: " + density;
     }
 }

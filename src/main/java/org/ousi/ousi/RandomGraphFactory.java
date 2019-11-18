@@ -1,16 +1,14 @@
 package org.ousi.ousi;
 
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-public class RandomGraphFactory {
-    static public Graph<Vertex, DefaultWeightedEdge> getRandomGraph(int n, double p) {
+class RandomGraphFactory {
+    static Network getRandomNetwork(int n, double p) {
         Random random = new Random();
-        Graph<Vertex, DefaultWeightedEdge> graph = new DefaultDirectedGraph<>(DefaultWeightedEdge.class);
+        Network graph = new Network();
         ArrayList<Vertex> vertices = new ArrayList<>(n);
         for (int i = 0; i < n; i++) {
             vertices.add(new Vertex());

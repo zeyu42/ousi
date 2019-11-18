@@ -1,10 +1,5 @@
 package org.ousi.ousi;
 
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultDirectedWeightedGraph;
-import org.jgrapht.graph.DefaultWeightedEdge;
-
-import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Ousi {
@@ -12,50 +7,50 @@ public class Ousi {
     // Currently, settings only include info about visualization threshold.
     private Settings settings = new Settings();
 
-    private LinkedList<Graph<Vertex, DefaultWeightedEdge>> graphs = new LinkedList<>();
-    private LinkedList<Graph<Vertex, DefaultWeightedEdge>> subgraphs = new LinkedList<>(); // The reduced graphs for visualization
+    private LinkedList<Network> networks = new LinkedList<>();
+    private LinkedList<Network> subNetworks = new LinkedList<>(); // The reduced networks for visualization
 
-    public LinkedList<Graph<Vertex, DefaultWeightedEdge>> getGraphs() {
-        return graphs;
+    public LinkedList<Network> getNetworks() {
+        return networks;
     }
 
-    public LinkedList<Graph<Vertex, DefaultWeightedEdge>> getSubgraphs() {
-        return subgraphs;
+    public LinkedList<Network> getSubNetworks() {
+        return subNetworks;
     }
 
-    public void createRandomGraph(int n, double p) {
-        graphs.addLast(RandomGraphFactory.getRandomGraph(n, p));
-        subgraphs.addLast(subgraph(graphs.getLast()));
+    public void createRandomNetwork(int n, double p) {
+        networks.addLast(RandomGraphFactory.getRandomNetwork(n, p));
+        subNetworks.addLast(subNetwork(networks.getLast()));
     }
 
-    private Graph<Vertex, DefaultWeightedEdge> subgraph(Graph<Vertex, DefaultWeightedEdge> graph) {
+    private Network subNetwork(Network network) {
         if (settings.getUseDegreeThreshold()) {
             int degreeThreshold = settings.getDegreeThreshold();
-            int n = graph.vertexSet().size();
-            Graph<Vertex, DefaultWeightedEdge> subgraph = new DefaultDirectedWeightedGraph<>(DefaultWeightedEdge.class);
-            // Add vertices whose degree are no less than the threshold to the subgraph
-            for (Vertex vertex : graph.vertexSet()) {
-                if (graph.degreeOf(vertex) >= degreeThreshold) {
-                    subgraph.addVertex(vertex);
+            int n = network.vertexSet().size();
+            Network subNetwork = new Network();
+            // Add vertices whose degree are no less than the threshold to the subNetwork
+            for (Vertex vertex : network.vertexSet()) {
+                if (network.degreeOf(vertex) >= degreeThreshold) {
+                    subNetwork.addVertex(vertex);
                 }
             }
             // Add the edges between those vertices to the subgraph
-            for (Vertex vertex1 : graph.vertexSet()) {
-                for (Vertex vertex2 : graph.vertexSet()) {
-                    if (graph.containsEdge(vertex1, vertex2)) {
-                        subgraph.addEdge(vertex1, vertex2, graph.getEdge(vertex1, vertex2));
+            for (Vertex vertex1 : network.vertexSet()) {
+                for (Vertex vertex2 : network.vertexSet()) {
+                    if (network.containsEdge(vertex1, vertex2)) {
+                        subNetwork.addEdge(vertex1, vertex2, network.getEdge(vertex1, vertex2));
                     }
                 }
             }
-            return subgraph;
+            return subNetwork;
         } else {
-            return graph;
+            return network;
         }
     }
 
-    public void removeGraph(int index) {
-        graphs.remove(index);
-        subgraphs.remove(index);
+    public void removeNetwork(int index) {
+        networks.remove(index);
+        subNetworks.remove(index);
     }
 
     public Settings getSettings() {

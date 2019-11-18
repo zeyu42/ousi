@@ -5,7 +5,7 @@ import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 public class Transformer {
-    static public void add(Graph<Vertex, DefaultWeightedEdge> destination, Graph<Vertex, DefaultWeightedEdge> source) {
+    static public void add(Network destination, Network source) {
         Graphs.addGraph(destination, source);
     }
 }
