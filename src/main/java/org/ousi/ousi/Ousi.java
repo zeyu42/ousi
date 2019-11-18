@@ -9,8 +9,8 @@ import java.util.LinkedList;
 
 public class Ousi {
 
-    // Settings
-    Settings settings = new Settings();
+    // Currently, settings only include info about visualization threshold.
+    private Settings settings = new Settings();
 
     private LinkedList<Graph<Vertex, DefaultWeightedEdge>> graphs = new LinkedList<>();
     private LinkedList<Graph<Vertex, DefaultWeightedEdge>> subgraphs = new LinkedList<>(); // The reduced graphs for visualization
