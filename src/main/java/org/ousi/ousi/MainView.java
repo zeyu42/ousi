@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -19,6 +20,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.FileBuffer;
@@ -57,7 +59,7 @@ public class MainView extends AppLayout {
         MenuItem fileMenuItem = menu.addItem("File");
         SubMenu fileSubMenu = fileMenuItem.getSubMenu();
         fileSubMenu.addItem("Open", event -> showOpenDialog());
-        fileSubMenu.addItem("Settings");
+        fileSubMenu.addItem("Settings", event -> showSettingsDialog());
 
         // Generate...
         MenuItem generateMenuItem = menu.addItem("Generate");
@@ -117,6 +119,32 @@ public class MainView extends AppLayout {
         mainLayout.setSplitterPosition(62);
 
         setContent(mainLayout);
+    }
+
+    private void showSettingsDialog() {
+        Dialog settingsDialog = new Dialog();
+        FormLayout layout = new FormLayout();
+        Checkbox useDegreeThresholdCheckbox = new Checkbox("Use a threshold for visualization");
+        useDegreeThresholdCheckbox.setValue(ousi.getSettings().getUseDegreeThreshold());
+        NumberField degreeThresholdNumberField = new NumberField();
+        degreeThresholdNumberField.setEnabled(ousi.getSettings().getUseDegreeThreshold());
+        degreeThresholdNumberField.setValue((double) ousi.getSettings().getDegreeThreshold());
+        useDegreeThresholdCheckbox.addValueChangeListener(event -> degreeThresholdNumberField.setEnabled(useDegreeThresholdCheckbox.getValue()));
+        layout.add(useDegreeThresholdCheckbox, degreeThresholdNumberField);
+
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        Button OKButton = new Button("OK", event -> {
+            ousi.getSettings().setUseDegreeThreshold(useDegreeThresholdCheckbox.getValue());
+            ousi.getSettings().setDegreeThreshold(degreeThresholdNumberField.getValue().intValue());
+            ousi.getSettings().writeSettings();
+            settingsDialog.close();
+        });
+        OKButton.addClickShortcut(Key.ENTER);
+        Button cancelButton = new Button("Cancel", event -> settingsDialog.close());
+        buttonLayout.add(OKButton, cancelButton);
+
+        settingsDialog.add(layout, buttonLayout);
+        settingsDialog.open();
     }
 
 
