@@ -10,6 +10,8 @@ import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -18,14 +20,19 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.FileBuffer;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.server.StreamResource;
+import org.vaadin.stefan.LazyDownloadButton;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Objects;
+import java.util.Optional;
 
 
 /**
@@ -36,6 +43,7 @@ import java.io.IOException;
 public class MainView extends AppLayout {
 
     private Ousi ousi = new Ousi();
+    private VerticalLayout rightLayout = new VerticalLayout();
     private Grid<Network> networkGrid = new Grid<>();
 
     public MainView() {
@@ -48,8 +56,7 @@ public class MainView extends AppLayout {
         // File...
         MenuItem fileMenuItem = menu.addItem("File");
         SubMenu fileSubMenu = fileMenuItem.getSubMenu();
-        fileSubMenu.addItem("Open");
-        fileSubMenu.addItem("Save");
+        fileSubMenu.addItem("Open", event -> showOpenDialog());
         fileSubMenu.addItem("Settings");
 
         // Generate...
@@ -65,7 +72,7 @@ public class MainView extends AppLayout {
         // Analyze...
         MenuItem analyzeMenuItem = menu.addItem("Analyze");
         SubMenu analyzeSubMenu = analyzeMenuItem.getSubMenu();
-        analyzeSubMenu.addItem("Density");
+        analyzeSubMenu.addItem("Density", event -> computeDensity());
 
         // Help...
         MenuItem helpMenuItem = menu.addItem("Help");
@@ -81,6 +88,7 @@ public class MainView extends AppLayout {
         SplitLayout leftLayout = new SplitLayout();
         leftLayout.setOrientation(SplitLayout.Orientation.VERTICAL);
         SplitLayout visualizationLayout = new SplitLayout(); // Use this only when user displays >1 graphs
+
         Accordion outputAccordion = new Accordion();
         ousi.setOutputAccordion(outputAccordion);
         leftLayout.addToPrimary(visualizationLayout);
@@ -91,9 +99,15 @@ public class MainView extends AppLayout {
         networkGrid.setItems(ousi.getNetworks());
         networkGrid.addColumn(Network::getLabel).setHeader("Label");
         networkGrid.addColumn(Network::getDescription).setHeader("Description");
+        networkGrid.setSelectionMode(Grid.SelectionMode.MULTI);
+        GridContextMenu<Network> contextMenu = networkGrid.addContextMenu();
+        GridMenuItem<Network> downloadMenuItem = contextMenu.addItem("Download", this::downloadNetwork);
+        GridMenuItem<Network> removeMenuItem = contextMenu.addItem("Remove", this::removeNetwork);
+
+        rightLayout.add(networkGrid);
 
         mainLayout.addToPrimary(leftLayout);
-        mainLayout.addToSecondary(networkGrid);
+        mainLayout.addToSecondary(rightLayout);
         mainLayout.addThemeVariants(SplitLayoutVariant.LUMO_SMALL);
 
         mainLayout.setSizeFull();
@@ -104,6 +118,58 @@ public class MainView extends AppLayout {
 
         setContent(mainLayout);
     }
+
+
+    private void computeDensity() {
+        for (Network network : networkGrid.getSelectedItems()) {
+            ousi.addToAccordion("Analyze -> Density", Analyzer.densityString(network));
+        }
+    }
+
+    private void removeNetwork(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
+        if (networkGrid.getSelectedItems().size() == 0) {
+            Optional<Network> item = networkGridContextMenuItemClickEvent.getItem();
+            if (!item.isPresent()) {
+                return;
+            }
+            Network network = item.get();
+            removeSingleNetwork(network);
+        } else {
+            for (Network network : networkGrid.getSelectedItems()) {
+                removeSingleNetwork(network);
+            }
+        }
+    }
+
+    private void removeSingleNetwork(Network network) {
+        ousi.removeNetwork(network);
+        networkGrid.getDataProvider().refreshAll();
+    }
+
+    private void downloadNetwork(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
+        if (networkGrid.getSelectedItems().size() == 0) {
+            Optional<Network> item = networkGridContextMenuItemClickEvent.getItem();
+            if (!item.isPresent()) {
+                return;
+            }
+            Network network = item.get();
+            downloadSingleNetwork(network);
+        } else {
+            for (Network network : networkGrid.getSelectedItems()) {
+                downloadSingleNetwork(network);
+            }
+        }
+    }
+
+    private void downloadSingleNetwork(Network network) {
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Objects.requireNonNull(FileManager.networkBinaryBytes(network)));
+        LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel() + ".bin", () -> byteArrayInputStream);
+        downloadButton.setVisible(false);
+//        downloadButton.addDownloadStartsListener(event1 -> rightLayout.remove(downloadButton));
+        rightLayout.add(downloadButton);
+        downloadButton.click();
+    }
+
 
     private static StreamResource streamResource() {
         try {
@@ -170,6 +236,20 @@ public class MainView extends AppLayout {
         layout.add(new Button("OK", event -> aboutDialog.close()));
         aboutDialog.add(layout);
         aboutDialog.open();
+    }
+
+    private void showOpenDialog() {
+        Dialog openDialog = new Dialog();
+        FileBuffer fileBuffer = new FileBuffer();
+        Upload upload = new Upload(fileBuffer);
+        upload.addFinishedListener(finishedEvent -> {
+            String filename = finishedEvent.getFileName();
+            ousi.addNetwork(FileManager.loadNetworkBinary(fileBuffer.getInputStream()));
+            openDialog.close();
+        });
+        Button cancelButton = new Button("Cancel", event -> openDialog.close());
+        openDialog.add(upload, cancelButton);
+        openDialog.open();
     }
 }
 

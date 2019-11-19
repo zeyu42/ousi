@@ -1,6 +1,8 @@
 package org.ousi.ousi;
 
-public class Vertex {
+import java.io.Serializable;
+
+public class Vertex implements Serializable {
     /*
     Vertex class.
      */

@@ -1,16 +1,13 @@
 package org.ousi.ousi;
 
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultWeightedEdge;
-
-public class Analyzer {
+class Analyzer {
     private static double getDensity(Network network) {
-        int ne = network.edgeSet().size();
-        int nv = network.vertexSet().size();
+        int ne = network.getM();
+        int nv = network.getN();
         return (float)ne / nv / (nv - 1);
     }
 
-    public static String densityString(Network network) {
+    static String densityString(Network network) {
         double density = getDensity(network);
         return "Density: " + density;
     }

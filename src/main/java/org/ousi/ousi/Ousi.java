@@ -1,6 +1,7 @@
 package org.ousi.ousi;
 
 import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.html.Span;
 
 import java.util.HashSet;
@@ -35,21 +36,23 @@ public class Ousi {
     private Network subNetwork(Network network) {
         if (settings.getUseDegreeThreshold()) {
             int degreeThreshold = settings.getDegreeThreshold();
-            int n = network.vertexSet().size();
+            int n = network.getVertices().size();
             Network subNetwork = new Network(true);
             HashSet<Vertex> vertices = new HashSet<>();
             // Add vertices whose degree are no less than the threshold to the subNetwork
-            for (Vertex vertex : network.vertexSet()) {
+            for (Vertex vertex : network.getVertices()) {
                 if (network.degreeOf(vertex) >= degreeThreshold) {
                     subNetwork.addVertex(vertex);
                     vertices.add(vertex);
                 }
             }
             // Add the edges between those vertices to the subgraph
-            for (Vertex vertex1 : network.vertexSet()) {
-                for (Vertex vertex2 : network.vertexSet()) {
-                    if (vertices.contains(vertex1) && vertices.contains(vertex2) && network.containsEdge(vertex1, vertex2)) {
-                        subNetwork.addEdge(vertex1, vertex2, network.getEdge(vertex1, vertex2));
+            for (Vertex vertex : network.getVertices()) {
+                if (subNetwork.containsVertex(vertex)) {
+                    for (Edge edge : network.getEdges(vertex)) {
+                        if (subNetwork.containsVertex(edge.getTo())) {
+                            subNetwork.addEdge(edge);
+                        }
                     }
                 }
             }
@@ -59,7 +62,11 @@ public class Ousi {
         }
     }
 
-    public void removeNetwork(int index) {
+    void removeNetwork(Network network) {
+        int index = networks.indexOf(network);
+        if (index == -1) {
+            return;
+        }
         networks.remove(index);
         subNetworks.remove(index);
     }
@@ -81,8 +88,15 @@ public class Ousi {
         this.outputAccordion = outputAccordion;
     }
 
-    private void addToAccordion(String panelLabel, String text) {
-        outputAccordion.add(panelLabel, new Span(text));
+    void addToAccordion(String panelLabel, String text) {
+        AccordionPanel panel = outputAccordion.add(panelLabel, new Span(text));
+        outputAccordion.open(panel);
+    }
+
+    void addNetwork(Network network) {
+        networks.addLast(network);
+        subNetworks.addLast(subNetwork(network));
+        addToAccordion("File -> Load", "Load network.\n");
     }
 
 }
