@@ -4,7 +4,6 @@ import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.html.Span;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 
 public class Ousi {
@@ -16,50 +15,21 @@ public class Ousi {
     private Accordion outputAccordion = null;
 
     private LinkedList<Network> networks = new LinkedList<>();
-    private LinkedList<Network> subNetworks = new LinkedList<>(); // The reduced networks for visualization
 
     public LinkedList<Network> getNetworks() {
         return networks;
     }
 
-    public LinkedList<Network> getSubNetworks() {
-        return subNetworks;
-    }
-
-    void createRandomNetwork(int n, double p) {
-        networks.addLast(RandomGraphFactory.getRandomNetwork(n, p));
-        subNetworks.addLast(subNetwork(networks.getLast()));
-        addToAccordion("Generate -> Random Network", "Created random network with " + n + " nodes and " + p + " link prob.\n");
-    }
-
-
-    private Network subNetwork(Network network) {
-        if (settings.getUseDegreeThreshold()) {
-            int degreeThreshold = settings.getDegreeThreshold();
-            int n = network.getVertices().size();
-            Network subNetwork = new Network(true);
-            HashSet<Vertex> vertices = new HashSet<>();
-            // Add vertices whose degree are no less than the threshold to the subNetwork
-            for (Vertex vertex : network.getVertices()) {
-                if (network.degreeOf(vertex) >= degreeThreshold) {
-                    subNetwork.addVertex(vertex);
-                    vertices.add(vertex);
-                }
-            }
-            // Add the edges between those vertices to the subgraph
-            for (Vertex vertex : network.getVertices()) {
-                if (subNetwork.containsVertex(vertex)) {
-                    for (Edge edge : network.getEdges(vertex)) {
-                        if (subNetwork.containsVertex(edge.getTo())) {
-                            subNetwork.addEdge(edge);
-                        }
-                    }
-                }
-            }
-            return subNetwork;
+    void createRandomNetwork(int n, double p, boolean isDirected, boolean hasWeight, int weightLowerBound, int weightUpperBound) {
+        networks.addLast(RandomGraphFactory.getRandomNetwork(n, p, isDirected, hasWeight, weightLowerBound, weightUpperBound));
+        String text;
+        if (isDirected) {
+            text = "Created directed network with ";
         } else {
-            return network;
+            text = "Created undirected network with ";
         }
+        text += n + " nodes and " + p + " link prob.\n";
+        addToAccordion("Generate -> Random Network", text);
     }
 
     void removeNetwork(Network network) {
@@ -68,7 +38,6 @@ public class Ousi {
             return;
         }
         networks.remove(index);
-        subNetworks.remove(index);
     }
 
     public Settings getSettings() {
@@ -95,7 +64,6 @@ public class Ousi {
 
     void addNetwork(Network network) {
         networks.addLast(network);
-        subNetworks.addLast(subNetwork(network));
         addToAccordion("File -> Load", "Load network.\n");
     }
 

@@ -12,12 +12,12 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
-import com.vaadin.flow.component.grid.contextmenu.GridMenuItem;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
 import com.vaadin.flow.component.textfield.NumberField;
@@ -25,8 +25,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.FileBuffer;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.server.StreamResource;
+import de.wathoserver.vaadin.visjs.network.NetworkDiagram;
 import org.vaadin.stefan.LazyDownloadButton;
 
 import java.io.ByteArrayInputStream;
@@ -40,13 +40,20 @@ import java.util.Optional;
 /**
  * The main view contains a button and a click listener.
  */
+@SuppressWarnings("serial")
 @Route("")
-@PWA(name = "Ousi", shortName = "Ousi")
+//@PWA(name = "Ousi", shortName = "Ousi")
 public class MainView extends AppLayout {
 
     private Ousi ousi = new Ousi();
+    private SplitLayout leftLayout = new SplitLayout();
     private VerticalLayout rightLayout = new VerticalLayout();
     private Grid<Network> networkGrid = new Grid<>();
+    private Network network1 = null;
+    private NetworkDiagram networkDiagram1 = null;
+    private Network network2 = null;
+    private NetworkDiagram networkDiagram2 = null;
+    private SplitLayout visualizeSplitLayout = new SplitLayout(); // Use this only when user displays >1 graphs
 
     public MainView() {
         // Navigation Bar
@@ -65,6 +72,26 @@ public class MainView extends AppLayout {
         MenuItem generateMenuItem = menu.addItem("Generate");
         SubMenu generateSubMenu = generateMenuItem.getSubMenu();
         generateSubMenu.addItem("Random Network", event -> showCreateRandomNetworkDialog());
+
+        // Visualize...
+        MenuItem visualizeMenuItem = menu.addItem("Visualize");
+        SubMenu visualizeSubMenu = visualizeMenuItem.getSubMenu();
+        visualizeSubMenu.addItem("One pane", event -> {
+            try {
+                leftLayout.remove(leftLayout.getPrimaryComponent());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            leftLayout.addToPrimary(networkDiagram1);
+        });
+        visualizeSubMenu.addItem("Two panes", event -> {
+            try {
+                leftLayout.remove(leftLayout.getPrimaryComponent());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            leftLayout.addToPrimary(visualizeSplitLayout);
+        });
 
         // Transform...
         MenuItem transformMenuItem = menu.addItem("Transform");
@@ -87,24 +114,26 @@ public class MainView extends AppLayout {
         // Main Layout
         SplitLayout mainLayout = new SplitLayout();
 
-        SplitLayout leftLayout = new SplitLayout();
         leftLayout.setOrientation(SplitLayout.Orientation.VERTICAL);
-        SplitLayout visualizationLayout = new SplitLayout(); // Use this only when user displays >1 graphs
 
         Accordion outputAccordion = new Accordion();
         ousi.setOutputAccordion(outputAccordion);
-        leftLayout.addToPrimary(visualizationLayout);
+        leftLayout.addToPrimary(networkDiagram1);
         leftLayout.addToSecondary(outputAccordion);
         leftLayout.addThemeVariants(SplitLayoutVariant.LUMO_SMALL);
 
+        visualizeSplitLayout.addToPrimary(networkDiagram1);
+        visualizeSplitLayout.addToSecondary(networkDiagram2);
 
         networkGrid.setItems(ousi.getNetworks());
         networkGrid.addColumn(Network::getLabel).setHeader("Label");
         networkGrid.addColumn(Network::getDescription).setHeader("Description");
         networkGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         GridContextMenu<Network> contextMenu = networkGrid.addContextMenu();
-        GridMenuItem<Network> downloadMenuItem = contextMenu.addItem("Download", this::downloadNetwork);
-        GridMenuItem<Network> removeMenuItem = contextMenu.addItem("Remove", this::removeNetwork);
+        contextMenu.addItem("Download Binary", this::downloadNetworkBinary);
+        contextMenu.addItem("Download DOT", this::downloadNetworkDOT);
+        contextMenu.addItem("Remove", this::removeNetwork);
+        contextMenu.addItem("Visualize", this::visualizeNetwork);
 
         rightLayout.add(networkGrid);
 
@@ -119,6 +148,99 @@ public class MainView extends AppLayout {
         mainLayout.setSplitterPosition(62);
 
         setContent(mainLayout);
+    }
+
+    private void downloadNetworkDOT(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
+        if (networkGrid.getSelectedItems().size() == 0) {
+            Optional<Network> item = networkGridContextMenuItemClickEvent.getItem();
+            if (!item.isPresent()) {
+                return;
+            }
+            Network network = item.get();
+            downloadSingleNetworkDOT(network);
+        } else {
+            for (Network network : networkGrid.getSelectedItems()) {
+                downloadSingleNetworkDOT(network);
+            }
+        }
+    }
+
+    private void downloadSingleNetworkDOT(Network network) {
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Objects.requireNonNull(network.toDOT().getBytes()));
+        LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel() + ".gv", () -> byteArrayInputStream);
+        downloadButton.setVisible(false);
+        rightLayout.add(downloadButton);
+        downloadButton.click();
+    }
+
+    private void visualizeNetwork(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
+        if (networkGrid.getSelectedItems().size() == 0) {
+            Optional<Network> item = networkGridContextMenuItemClickEvent.getItem();
+            if (!item.isPresent()) {
+                return;
+            }
+            Network network = item.get();
+            visualizeSingleNetwork(network);
+        } else if (networkGrid.getSelectedItems().size() == 1) {
+            for (Network network : networkGrid.getSelectedItems()) {
+                visualizeSingleNetwork(network);
+            }
+        } else if (networkGrid.getSelectedItems().size() == 2) {
+            visualizeSplitLayout.removeAll();
+            int count = 0;
+            for (Network network : networkGrid.getSelectedItems()) {
+                if (count == 0) {
+                    network1 = network;
+                    networkDiagram1 = network.getNetworkDiagram(false, ousi.getSettings());
+                    networkDiagram1.diagramFit();
+                } else {
+                    network2 = network;
+                    networkDiagram2 = network.getNetworkDiagram(false, ousi.getSettings());
+                    networkDiagram2.diagramFit();
+                }
+                count++;
+            }
+            visualizeSplitLayout.addToPrimary(networkDiagram1);
+            visualizeSplitLayout.addToSecondary(networkDiagram2);
+        }
+    }
+
+    private void visualizeSingleNetwork(Network network) {
+        if (leftLayout.getPrimaryComponent() == networkDiagram1) {
+            // One pane
+            network1 = network;
+            try {
+                leftLayout.remove(networkDiagram1);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            networkDiagram1 = network.getNetworkDiagram(false, ousi.getSettings());
+            networkDiagram1.diagramSetSize("300px", "300px");
+            leftLayout.addToPrimary(networkDiagram1);
+        } else {
+            // Two panes
+            if (networkDiagram1 == null) {
+                network1 = network;
+                try {
+                    visualizeSplitLayout.remove(networkDiagram1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                networkDiagram1 = network.getNetworkDiagram(false, ousi.getSettings());
+                networkDiagram1.diagramFit();
+                visualizeSplitLayout.addToPrimary(networkDiagram1);
+            } else {
+                network2 = network;
+                try {
+                    visualizeSplitLayout.remove(networkDiagram2);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                networkDiagram2 = network.getNetworkDiagram(false, ousi.getSettings());
+                networkDiagram2.diagramFit();
+                visualizeSplitLayout.addToSecondary(networkDiagram2);
+            }
+        }
     }
 
     private void showSettingsDialog() {
@@ -137,6 +259,8 @@ public class MainView extends AppLayout {
             ousi.getSettings().setUseDegreeThreshold(useDegreeThresholdCheckbox.getValue());
             ousi.getSettings().setDegreeThreshold(degreeThresholdNumberField.getValue().intValue());
             ousi.getSettings().writeSettings();
+            networkDiagram1 = network1.getNetworkDiagram(true, ousi.getSettings());
+            networkDiagram2 = network2.getNetworkDiagram(true, ousi.getSettings());
             settingsDialog.close();
         });
         OKButton.addClickShortcut(Key.ENTER);
@@ -174,26 +298,25 @@ public class MainView extends AppLayout {
         networkGrid.getDataProvider().refreshAll();
     }
 
-    private void downloadNetwork(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
+    private void downloadNetworkBinary(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
         if (networkGrid.getSelectedItems().size() == 0) {
             Optional<Network> item = networkGridContextMenuItemClickEvent.getItem();
             if (!item.isPresent()) {
                 return;
             }
             Network network = item.get();
-            downloadSingleNetwork(network);
+            downloadSingleNetworkBinary(network);
         } else {
             for (Network network : networkGrid.getSelectedItems()) {
-                downloadSingleNetwork(network);
+                downloadSingleNetworkBinary(network);
             }
         }
     }
 
-    private void downloadSingleNetwork(Network network) {
+    private void downloadSingleNetworkBinary(Network network) {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Objects.requireNonNull(FileManager.networkBinaryBytes(network)));
         LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel() + ".bin", () -> byteArrayInputStream);
         downloadButton.setVisible(false);
-//        downloadButton.addDownloadStartsListener(event1 -> rightLayout.remove(downloadButton));
         rightLayout.add(downloadButton);
         downloadButton.click();
     }
@@ -233,19 +356,52 @@ public class MainView extends AppLayout {
         TextField pTextField = new TextField();
         pTextField.setLabel("Link prob.");
         pTextField.setPlaceholder("0.5");
-        layout.add(nTextField, pTextField);
+        RadioButtonGroup<String> isDirectedRadioButtonGroup = new RadioButtonGroup<>();
+        isDirectedRadioButtonGroup.setItems("Directed", "Undirected");
+        isDirectedRadioButtonGroup.setValue("Directed");
+        Checkbox hasWeightCheckbox = new Checkbox("Weighted");
+        NumberField lowerBoundNumberField = new NumberField("Lower bound (inclusive)");
+        lowerBoundNumberField.setPlaceholder("1");
+        lowerBoundNumberField.setEnabled(false);
+        NumberField upperBoundNumberField = new NumberField("Upper bound (exclusive)");
+        upperBoundNumberField.setPlaceholder("10");
+        upperBoundNumberField.setEnabled(false);
+        hasWeightCheckbox.addValueChangeListener(event -> {
+            lowerBoundNumberField.setEnabled(hasWeightCheckbox.getValue());
+            upperBoundNumberField.setEnabled(hasWeightCheckbox.getValue());
+        });
+
+        layout.add(nTextField, pTextField, isDirectedRadioButtonGroup, hasWeightCheckbox, lowerBoundNumberField, upperBoundNumberField);
 
         HorizontalLayout buttonLayout = new HorizontalLayout();
         Button createButton = new Button("Create", event -> {
+            int n;
             if (nTextField.getValue().equals("")) {
-                nTextField.setValue(nTextField.getPlaceholder());
+                n = Integer.parseInt(nTextField.getPlaceholder());
+            } else {
+                n = Integer.parseInt(nTextField.getValue());
             }
+            double p;
             if (pTextField.getValue().equals("")) {
-                pTextField.setValue(pTextField.getPlaceholder());
+                p = Double.parseDouble(pTextField.getPlaceholder());
+            } else {
+                p = Double.parseDouble(pTextField.getValue());
             }
-            int n = Integer.parseInt(nTextField.getValue());
-            double p = Double.parseDouble(pTextField.getValue());
-            ousi.createRandomNetwork(n, p);
+            boolean isDirected = isDirectedRadioButtonGroup.getValue().equals("Directed");
+            boolean hasWeight = hasWeightCheckbox.getValue();
+            int lowerBound;
+            if (lowerBoundNumberField.getValue() != null) {
+                lowerBound = lowerBoundNumberField.getValue().intValue();
+            } else {
+                lowerBound = Integer.parseInt(lowerBoundNumberField.getPlaceholder());
+            }
+            int upperBound;
+            if (upperBoundNumberField.getValue() != null) {
+                upperBound = upperBoundNumberField.getValue().intValue();
+            } else {
+                upperBound = Integer.parseInt(upperBoundNumberField.getPlaceholder());
+            }
+            ousi.createRandomNetwork(n, p, isDirected, hasWeight, lowerBound, upperBound);
             networkGrid.getDataProvider().refreshAll();
             createRandomNetworkDialog.close();
         });
