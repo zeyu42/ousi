@@ -132,7 +132,7 @@ public class Network implements Serializable {
         return vertexToEdges.containsKey(from) && vertexToVertices.get(from).contains(to);
     }
 
-    private Set<Edge> getEdges(Vertex vertex) {
+    Set<Edge> getEdges(Vertex vertex) {
         return vertexToEdges.get(vertex);
     }
 
@@ -189,7 +189,7 @@ public class Network implements Serializable {
         if (isDirected) {
             // currently always true
             // ignore weight for now
-            DOT.append("digraph ").append(label).append(" {\n");
+            DOT.append("digraph ").append(label.replace(" + ", "")).append(" {\n");
             for (Vertex from : vertexToEdges.keySet()) {
                 for (Edge edge : getEdges(from)) {
                     Vertex to = edge.getTo();
@@ -206,7 +206,7 @@ public class Network implements Serializable {
         } else {
             // currently always true
             // ignore weight for now
-            DOT.append("graph ").append(label).append(" {\n");
+            DOT.append("graph ").append(label.replace(" + ", "")).append(" {\n");
             for (Vertex from : vertexToEdges.keySet()) {
                 for (Edge edge : getEdges(from)) {
                     Vertex to = edge.getTo();
@@ -225,5 +225,13 @@ public class Network implements Serializable {
             DOT.append("}\n");
         }
         return DOT.toString();
+    }
+
+    boolean getIsDirected() {
+        return isDirected;
+    }
+
+    boolean getHasWeight() {
+        return hasWeight;
     }
 }

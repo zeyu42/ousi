@@ -15,6 +15,7 @@ import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
@@ -97,7 +98,7 @@ public class MainView extends AppLayout {
         // Transform...
         MenuItem transformMenuItem = menu.addItem("Transform");
         SubMenu transformSubMenu = transformMenuItem.getSubMenu();
-        transformSubMenu.addItem("Add");
+        transformSubMenu.addItem("Add", event -> add());
 
         // Analyze...
         MenuItem analyzeMenuItem = menu.addItem("Analyze");
@@ -151,6 +152,60 @@ public class MainView extends AppLayout {
         setContent(mainLayout);
     }
 
+    private void add() {
+        if (networkGrid.getSelectedItems().size() > 1) {
+            boolean isDirected = true; // value unimportant
+            boolean hasWeight = false; // value unimportant
+            boolean first = true;
+            for (Network network : networkGrid.getSelectedItems()) {
+                if (first) {
+                    isDirected = network.getIsDirected();
+                    hasWeight = network.getHasWeight();
+                } else {
+                    first = false;
+                    if (isDirected != network.getIsDirected() || hasWeight != network.getHasWeight()) {
+                        Notification.show("Please make sure that all graphs are directed/undirected and weighted/unweighted.");
+                    }
+                }
+            }
+            Network sum = new Network(isDirected, hasWeight);
+            // Add vertices
+            for (Network network : networkGrid.getSelectedItems()) {
+                for (Vertex vertex : network.getVertices()) {
+                    if (!sum.containsVertex(vertex)) {
+                        sum.addVertex(vertex);
+                    }
+                }
+            }
+            // Add edges
+            for (Network network : networkGrid.getSelectedItems()) {
+                for (Vertex vertex : network.getVertices()) {
+                    for (Edge edge : network.getEdges(vertex)) {
+                        if (!sum.getEdges(vertex).contains(edge)) {
+                            sum.addEdge(edge);
+                        }
+                    }
+                }
+            }
+            // Generate label
+            StringBuilder label = new StringBuilder();
+            first = true;
+            for (Network network : networkGrid.getSelectedItems()) {
+                if (!first) {
+                    label.append(" + ");
+                } else {
+                    first = false;
+                }
+                label.append(network.getLabel());
+            }
+            sum.setLabel(label.toString());
+            ousi.addNetwork(sum, "Transform -> Add", "Addition done. Output: " + label.toString());
+            networkGrid.getDataProvider().refreshAll();
+        } else {
+            Notification.show("Please selected at least two networks.");
+        }
+    }
+
     private void downloadNetworkDOT(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
         if (networkGrid.getSelectedItems().size() == 0) {
             Optional<Network> item = networkGridContextMenuItemClickEvent.getItem();
@@ -168,7 +223,7 @@ public class MainView extends AppLayout {
 
     private void downloadSingleNetworkDOT(Network network) {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Objects.requireNonNull(network.toDOT().getBytes()));
-        LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel() + ".gv", () -> byteArrayInputStream);
+        LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel().replace(" ", "").replace("+", "_") + ".gv", () -> byteArrayInputStream);
         downloadButton.setVisible(false);
         rightLayout.add(downloadButton);
         downloadButton.click();
@@ -316,12 +371,11 @@ public class MainView extends AppLayout {
 
     private void downloadSingleNetworkBinary(Network network) {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Objects.requireNonNull(FileManager.networkBinaryBytes(network)));
-        LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel() + ".bin", () -> byteArrayInputStream);
+        LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel().replace(" ", "").replace("+", "_") + ".bin", () -> byteArrayInputStream);
         downloadButton.setVisible(false);
         rightLayout.add(downloadButton);
         downloadButton.click();
     }
-
 
     private static StreamResource streamResource() {
         try {
@@ -486,7 +540,8 @@ public class MainView extends AppLayout {
         MemoryBuffer memoryBuffer = new MemoryBuffer();
         Upload upload = new Upload(memoryBuffer);
         upload.addSucceededListener(finishedEvent -> {
-            ousi.addNetwork(FileManager.loadNetworkBinary(memoryBuffer.getInputStream()));
+            Network network = FileManager.loadNetworkBinary(memoryBuffer.getInputStream());
+            ousi.addNetwork(network, "File -> Open", "Load network with label " + network.getLabel() + ".");
             networkGrid.getDataProvider().refreshAll();
             openDialog.close();
         });
