@@ -12,6 +12,7 @@ import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
@@ -155,6 +156,7 @@ public class MainView extends AppLayout {
         contextMenu.addItem("Download DOT", this::downloadNetworkDOT);
         contextMenu.addItem("Remove", this::removeNetwork);
         contextMenu.addItem("Visualize", this::visualizeNetwork);
+        networkGrid.addItemDoubleClickListener(this::visualizeNetwork);
 
         rightLayout.add(networkGrid);
 
@@ -170,6 +172,7 @@ public class MainView extends AppLayout {
 
         setContent(mainLayout);
     }
+
 
     private void showFilterEdgeDialog() {
         Dialog filterEdgeDialog = new Dialog();
@@ -293,6 +296,10 @@ public class MainView extends AppLayout {
         downloadButton.setVisible(false);
         rightLayout.add(downloadButton);
         downloadButton.click();
+    }
+
+    private void visualizeNetwork(ItemDoubleClickEvent<Network> networkItemDoubleClickEvent) {
+        visualizeSingleNetwork(networkItemDoubleClickEvent.getItem());
     }
 
     private void visualizeNetwork(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {

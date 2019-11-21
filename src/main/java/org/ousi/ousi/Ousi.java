@@ -71,7 +71,7 @@ public class Ousi {
 
     void addToAccordion(String panelLabel, String text) {
         AccordionPanel panel = outputAccordion.add(panelLabel, new Span(text));
-        outputAccordion.open(panel);
+        outputAccordion.open(panel); // Don't know why. This won't work when there are more than 1 panel in the accordion.
     }
 
     void addNetwork(Network network, String label, String text) {
