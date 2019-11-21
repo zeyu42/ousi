@@ -23,7 +23,7 @@ import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.FileBuffer;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import de.wathoserver.vaadin.visjs.network.NetworkDiagram;
@@ -424,11 +424,11 @@ public class MainView extends AppLayout {
 
     private void showOpenDialog() {
         Dialog openDialog = new Dialog();
-        FileBuffer fileBuffer = new FileBuffer();
-        Upload upload = new Upload(fileBuffer);
-        upload.addFinishedListener(finishedEvent -> {
-            String filename = finishedEvent.getFileName();
-            ousi.addNetwork(FileManager.loadNetworkBinary(fileBuffer.getInputStream()));
+        MemoryBuffer memoryBuffer = new MemoryBuffer();
+        Upload upload = new Upload(memoryBuffer);
+        upload.addSucceededListener(finishedEvent -> {
+            ousi.addNetwork(FileManager.loadNetworkBinary(memoryBuffer.getInputStream()));
+            networkGrid.getDataProvider().refreshAll();
             openDialog.close();
         });
         Button cancelButton = new Button("Cancel", event -> openDialog.close());

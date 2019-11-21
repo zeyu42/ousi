@@ -64,7 +64,7 @@ public class Ousi {
 
     void addNetwork(Network network) {
         networks.addLast(network);
-        addToAccordion("File -> Load", "Load network.\n");
+        addToAccordion("File -> Load", "Load network (label: " + network.getLabel() + ").\n");
     }
 
 }
