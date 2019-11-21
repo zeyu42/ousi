@@ -91,11 +91,11 @@ public class Network implements Serializable {
         Vertex from = edge.getFrom();
         Vertex to = edge.getTo();
         boolean containsFrom = vertexToEdges.containsKey(from);
-        vertexToEdges.getOrDefault(from, new HashSet<>()).add(edge);
+        vertexToEdges.computeIfAbsent(from, (k) -> new HashSet<>()).add(edge);
         boolean containsTo = vertexToEdges.containsKey(to);
-        vertexToVertices.getOrDefault(from, new HashSet<>()).add(to);
-        vertexToEdges.getOrDefault(to, new HashSet<>());
-        vertexToVertices.getOrDefault(to, new HashSet<>());
+        vertexToVertices.computeIfAbsent(from, (k) -> new HashSet<>()).add(to);
+        vertexToEdges.computeIfAbsent(to, (k) -> new HashSet<>());
+        vertexToVertices.computeIfAbsent(to, (k) -> new HashSet<>());
         m++;
         if (networkDiagram != null && (!settings.getUseDegreeThreshold() || (degreeOf(from) >= settings.getDegreeThreshold() && degreeOf(to) >= settings.getDegreeThreshold()))) {
             String fromId = String.valueOf(from.getId());
@@ -189,7 +189,7 @@ public class Network implements Serializable {
         if (isDirected) {
             // currently always true
             // ignore weight for now
-            DOT.append("digraph ").append(label.replace(" + ", "")).append(" {\n");
+            DOT.append("digraph ").append("G").append(" {\n");
             for (Vertex from : vertexToEdges.keySet()) {
                 for (Edge edge : getEdges(from)) {
                     Vertex to = edge.getTo();
@@ -206,7 +206,7 @@ public class Network implements Serializable {
         } else {
             // currently always true
             // ignore weight for now
-            DOT.append("graph ").append(label.replace(" + ", "")).append(" {\n");
+            DOT.append("graph ").append("G").append(" {\n");
             for (Vertex from : vertexToEdges.keySet()) {
                 for (Edge edge : getEdges(from)) {
                     Vertex to = edge.getTo();

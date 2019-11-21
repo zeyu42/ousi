@@ -99,6 +99,7 @@ public class MainView extends AppLayout {
         MenuItem transformMenuItem = menu.addItem("Transform");
         SubMenu transformSubMenu = transformMenuItem.getSubMenu();
         transformSubMenu.addItem("Add", event -> add());
+        transformSubMenu.addItem("Filter edge", event -> showFilterEdgeDialog());
 
         // Analyze...
         MenuItem analyzeMenuItem = menu.addItem("Analyze");
@@ -150,6 +151,53 @@ public class MainView extends AppLayout {
         mainLayout.setSplitterPosition(62);
 
         setContent(mainLayout);
+    }
+
+    private void showFilterEdgeDialog() {
+        Dialog filterEdgeDialog = new Dialog();
+        TextField thresholdTextField = new TextField("Threshold");
+        thresholdTextField.setPlaceholder("5");
+        Button OKButton = new Button("OK", event -> {
+            double threshold;
+            if (thresholdTextField.getValue().equals("")) {
+                threshold = Double.parseDouble(thresholdTextField.getPlaceholder());
+            } else {
+                threshold = Double.parseDouble(thresholdTextField.getValue());
+            }
+            filterEdge(threshold);
+            filterEdgeDialog.close();
+        });
+        Button cancelButton = new Button("Cancel", event -> filterEdgeDialog.close());
+        HorizontalLayout buttonLayout = new HorizontalLayout(OKButton, cancelButton);
+        filterEdgeDialog.add(thresholdTextField, buttonLayout);
+        filterEdgeDialog.open();
+    }
+
+    private void filterEdge(double threshold) {
+        if (networkGrid.getSelectedItems().size() == 1) {
+            Network unfiltered = null;
+            for (Network network : networkGrid.getSelectedItems()) {
+                unfiltered = network;
+            }
+            assert unfiltered != null;
+            if (unfiltered.getHasWeight()) {
+                Network filtered = new Network(unfiltered.getIsDirected(), true);
+                for (Vertex vertex : unfiltered.getVertices()) {
+                    for (Edge edge : unfiltered.getEdges(vertex)) {
+                        if (edge.getWeight() >= threshold) {
+                            filtered.addEdge(edge);
+                        }
+                    }
+                }
+                filtered.setLabel(unfiltered.getLabel() + "f");
+                ousi.addNetwork(filtered, "Transform -> Filter edge", "Filtered edge with threshold " + threshold + ". Output: " + filtered.getLabel());
+                networkGrid.getDataProvider().refreshAll();
+            } else {
+                Notification.show("Please select a weighted network.");
+            }
+        } else {
+            Notification.show("Please select exactly one network.");
+        }
     }
 
     private void add() {
