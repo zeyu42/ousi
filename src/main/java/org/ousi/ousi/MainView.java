@@ -14,6 +14,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -28,6 +29,8 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.validator.StringLengthValidator;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.server.StreamResource;
@@ -56,6 +59,7 @@ public class MainView extends AppLayout {
     private SplitLayout leftLayout = new SplitLayout();
     private VerticalLayout rightLayout = new VerticalLayout();
     private Grid<Network> networkGrid = new Grid<>();
+    private Editor<Network> networkEditor = networkGrid.getEditor();
     private Network network1 = null;
     private NetworkDiagram networkDiagram1 = null;
     private Network network2 = null;
@@ -148,10 +152,24 @@ public class MainView extends AppLayout {
         visualizeSplitLayout.addToSecondary(networkDiagram2);
 
         networkGrid.setItems(ousi.getNetworks());
-        networkGrid.addColumn(Network::getLabel).setHeader("Label");
-        networkGrid.addColumn(Network::getDescription).setHeader("Description");
+        Grid.Column<Network> labelColumn = networkGrid.addColumn(Network::getLabel).setHeader("Label");
+        Grid.Column<Network> descriptionColumn = networkGrid.addColumn(Network::getDescription).setHeader("Description");
         networkGrid.setSelectionMode(Grid.SelectionMode.MULTI);
+        Binder<Network> networkBinder = new Binder<>(Network.class);
+        networkEditor.setBinder(networkBinder);
+        TextField labelField = new TextField();
+        TextField descriptionField = new TextField();
+
+        labelField.getElement().addEventListener("keydown", event -> networkEditor.cancel()).setFilter("event.key === 'Tab' && event.shiftKey");
+        networkBinder.forField(labelField).withValidator(new StringLengthValidator("Label length must be between 1 and 100.", 1, 100)).bind("label");
+        labelColumn.setEditorComponent(labelField);
+
+        descriptionField.getElement().addEventListener("keydown", event -> networkEditor.cancel()).setFilter("event.key === 'Tab'");
+        networkBinder.forField(descriptionField).bind("description");
+        descriptionColumn.setEditorComponent(descriptionField);
+
         GridContextMenu<Network> contextMenu = networkGrid.addContextMenu();
+        contextMenu.addItem("Edit", this::editNetwork);
         contextMenu.addItem("Download Binary", this::downloadNetworkBinary);
         contextMenu.addItem("Download DOT", this::downloadNetworkDOT);
         contextMenu.addItem("Remove", this::removeNetwork);
@@ -171,6 +189,12 @@ public class MainView extends AppLayout {
         mainLayout.setSplitterPosition(62);
 
         setContent(mainLayout);
+    }
+
+    private void editNetwork(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
+        if (networkGridContextMenuItemClickEvent.getItem().isPresent()) {
+            networkEditor.editItem(networkGridContextMenuItemClickEvent.getItem().get());
+        }
     }
 
 
