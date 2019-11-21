@@ -173,11 +173,15 @@ public class Network implements Serializable {
             nodeList.add(new Node(fromId));
             for (Edge edge : vertexToEdges.get(from)) {
                 Vertex to = edge.getTo();
-                if (settings.getUseDegreeThreshold() && degreeOf(to) < settings.getDegreeThreshold()) {
+                if (!isDirected && from.getId() > to.getId() || settings.getUseDegreeThreshold() && degreeOf(to) < settings.getDegreeThreshold()) {
                     continue;
                 }
                 String toId = String.valueOf(to.getId());
-                edgeList.add(new de.wathoserver.vaadin.visjs.network.Edge(fromId, toId));
+                de.wathoserver.vaadin.visjs.network.Edge visjsEdge = new de.wathoserver.vaadin.visjs.network.Edge(fromId, toId);
+                if (isDirected) {
+                    visjsEdge.setArrows("to");
+                }
+                edgeList.add(visjsEdge);
             }
         }
         networkDiagram.setNodes(nodeList);

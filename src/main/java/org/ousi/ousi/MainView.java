@@ -2,6 +2,7 @@ package org.ousi.ousi;
 
 
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
@@ -18,6 +19,7 @@ import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
@@ -26,6 +28,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.server.StreamResource;
 import de.wathoserver.vaadin.visjs.network.NetworkDiagram;
 import org.vaadin.stefan.LazyDownloadButton;
@@ -34,6 +37,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -43,7 +48,7 @@ import java.util.Optional;
  */
 @SuppressWarnings("serial")
 @Route("")
-//@PWA(name = "Ousi", shortName = "Ousi")
+@PWA(name = "Ousi", shortName = "Ousi")
 public class MainView extends AppLayout {
 
     private Ousi ousi = new Ousi();
@@ -57,6 +62,19 @@ public class MainView extends AppLayout {
     private SplitLayout visualizeSplitLayout = new SplitLayout(); // Use this only when user displays >1 graphs
 
     public MainView() {
+        // The following is freakingly dirty way of loading a js script... I have to do this due to some weird issues with Vaadin 14, webpack and babel and I have spend like 10 hours on this problem...
+        String visjs;
+        try {
+            visjs = new String(Files.readAllBytes(Paths.get("frontend/vis-patched.min.js")));
+            Page page = UI.getCurrent().getPage();
+            page.executeJs(visjs);
+            page.executeJs("vis = vis()");
+            page.executeJs("console.log(\"visjs loaded\")");
+        } catch (IOException e) {
+            // In this case visualization will be broken.
+            e.printStackTrace();
+        }
+
         // Navigation Bar
         // Logo
         Image logoImage = new Image(streamResource(), "Ousi Logo");
@@ -319,7 +337,6 @@ public class MainView extends AppLayout {
                 e.printStackTrace();
             }
             networkDiagram1 = network.getNetworkDiagram(false, ousi.getSettings());
-            networkDiagram1.diagramSetSize("300px", "300px");
             leftLayout.addToPrimary(networkDiagram1);
         } else {
             // Two panes
