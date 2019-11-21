@@ -227,8 +227,8 @@ public class MainView extends AppLayout {
                 if (first) {
                     isDirected = network.getIsDirected();
                     hasWeight = network.getHasWeight();
-                } else {
                     first = false;
+                } else {
                     if (isDirected != network.getIsDirected() || hasWeight != network.getHasWeight()) {
                         Notification.show("Please make sure that all graphs are directed/undirected and weighted/unweighted.");
                     }
