@@ -78,7 +78,7 @@ public class MainView extends AppLayout {
 
         // Navigation Bar
         // Logo
-        Image logoImage = new Image(streamResource(), "Ousi Logo");
+        Image logoImage = new Image(logoStreamResource(), "Ousi Logo");
         logoImage.setHeight("44px");
         // Menu Bar
         MenuBar menu = new MenuBar();
@@ -449,7 +449,7 @@ public class MainView extends AppLayout {
         downloadButton.click();
     }
 
-    private static StreamResource streamResource() {
+    private static StreamResource logoStreamResource() {
         try {
             File file = new File("src/main/webapp/img/logo.png");
             FileInputStream fileInputStream = new FileInputStream(file);

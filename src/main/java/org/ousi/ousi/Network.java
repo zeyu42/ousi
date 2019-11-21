@@ -67,13 +67,9 @@ public class Network implements Serializable {
         this.description = description;
     }
 
-    private void addVertex(String label) {
-        Vertex vertex = new Vertex(label);
+    private void addVertex() {
+        Vertex vertex = new Vertex();
         addVertex(vertex);
-    }
-
-    public void addVertex() {
-        addVertex("");
     }
 
     void addVertex(Vertex vertex) {
