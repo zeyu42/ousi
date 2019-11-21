@@ -20,6 +20,18 @@ public class Ousi {
         return networks;
     }
 
+    void createCompleteNetwork(int n, boolean isDirected, boolean hasWeight, int weightLowerBound, int weightUpperBound) {
+        networks.addLast(CompleteGraphFactory.getCompleteNetwork(n, isDirected, hasWeight, weightLowerBound, weightUpperBound));
+        String text;
+        if (isDirected) {
+            text = "Created directed complete network with ";
+        } else {
+            text = "Created undirected complete network with ";
+        }
+        text += n + " nodes.\n";
+        addToAccordion("Generate -> Complete Network", text);
+    }
+
     void createRandomNetwork(int n, double p, boolean isDirected, boolean hasWeight, int weightLowerBound, int weightUpperBound) {
         networks.addLast(RandomGraphFactory.getRandomNetwork(n, p, isDirected, hasWeight, weightLowerBound, weightUpperBound));
         String text;

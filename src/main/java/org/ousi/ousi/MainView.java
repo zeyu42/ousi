@@ -71,6 +71,7 @@ public class MainView extends AppLayout {
         // Generate...
         MenuItem generateMenuItem = menu.addItem("Generate");
         SubMenu generateSubMenu = generateMenuItem.getSubMenu();
+        generateSubMenu.addItem("Complete Network", event -> showCreateCompleteNetworkDialog());
         generateSubMenu.addItem("Random Network", event -> showCreateRandomNetworkDialog());
 
         // Visualize...
@@ -345,6 +346,64 @@ public class MainView extends AppLayout {
         }
     }
 
+    private void showCreateCompleteNetworkDialog() {
+        // If user's input is invalid, an exception will be thrown and the program will on running.
+        Dialog createCompleteNetworkDialog = new Dialog();
+        FormLayout layout = new FormLayout();
+        TextField nTextField = new TextField();
+        nTextField.setAutofocus(true);
+        nTextField.setLabel("# of Nodes");
+        nTextField.setPlaceholder("10");
+        RadioButtonGroup<String> isDirectedRadioButtonGroup = new RadioButtonGroup<>();
+        isDirectedRadioButtonGroup.setItems("Directed", "Undirected");
+        isDirectedRadioButtonGroup.setValue("Directed");
+        Checkbox hasWeightCheckbox = new Checkbox("Weighted");
+        NumberField lowerBoundNumberField = new NumberField("Lower bound (inclusive)");
+        lowerBoundNumberField.setPlaceholder("1");
+        lowerBoundNumberField.setEnabled(false);
+        NumberField upperBoundNumberField = new NumberField("Upper bound (exclusive)");
+        upperBoundNumberField.setPlaceholder("10");
+        upperBoundNumberField.setEnabled(false);
+        hasWeightCheckbox.addValueChangeListener(event -> {
+            lowerBoundNumberField.setEnabled(hasWeightCheckbox.getValue());
+            upperBoundNumberField.setEnabled(hasWeightCheckbox.getValue());
+        });
+
+        layout.add(nTextField, isDirectedRadioButtonGroup, hasWeightCheckbox, lowerBoundNumberField, upperBoundNumberField);
+
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        Button createButton = new Button("Create", event -> {
+            int n;
+            if (nTextField.getValue().equals("")) {
+                n = Integer.parseInt(nTextField.getPlaceholder());
+            } else {
+                n = Integer.parseInt(nTextField.getValue());
+            }
+            boolean isDirected = isDirectedRadioButtonGroup.getValue().equals("Directed");
+            boolean hasWeight = hasWeightCheckbox.getValue();
+            int lowerBound;
+            if (lowerBoundNumberField.getValue() != null) {
+                lowerBound = lowerBoundNumberField.getValue().intValue();
+            } else {
+                lowerBound = Integer.parseInt(lowerBoundNumberField.getPlaceholder());
+            }
+            int upperBound;
+            if (upperBoundNumberField.getValue() != null) {
+                upperBound = upperBoundNumberField.getValue().intValue();
+            } else {
+                upperBound = Integer.parseInt(upperBoundNumberField.getPlaceholder());
+            }
+            ousi.createCompleteNetwork(n, isDirected, hasWeight, lowerBound, upperBound);
+            networkGrid.getDataProvider().refreshAll();
+            createCompleteNetworkDialog.close();
+        });
+        createButton.addClickShortcut(Key.ENTER);
+        Button cancelButton = new Button("Cancel", event -> createCompleteNetworkDialog.close());
+        buttonLayout.add(createButton, cancelButton);
+
+        createCompleteNetworkDialog.add(layout, buttonLayout);
+        createCompleteNetworkDialog.open();
+    }
     private void showCreateRandomNetworkDialog() {
         // If user's input is invalid, an exception will be thrown and the program will on running.
         Dialog createRandomNetworkDialog = new Dialog();
