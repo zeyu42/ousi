@@ -140,17 +140,21 @@ public class MainView extends AppLayout {
         // Main Layout
         SplitLayout mainLayout = new SplitLayout();
 
+        // Left Part
         leftLayout.setOrientation(SplitLayout.Orientation.VERTICAL);
 
         Accordion outputAccordion = new Accordion();
         ousi.setOutputAccordion(outputAccordion);
+        // By default, the visualization part is only one pane.
         leftLayout.addToPrimary(networkDiagram1);
         leftLayout.addToSecondary(outputAccordion);
         leftLayout.addThemeVariants(SplitLayoutVariant.LUMO_SMALL);
 
+        // Add the two diagrams to the visualization split layout but don't add the layout to the left layout.
         visualizeSplitLayout.addToPrimary(networkDiagram1);
         visualizeSplitLayout.addToSecondary(networkDiagram2);
 
+        // The right part (the network grid)
         networkGrid.setItems(ousi.getNetworks());
         Grid.Column<Network> labelColumn = networkGrid.addColumn(Network::getLabel).setHeader("Label");
         Grid.Column<Network> descriptionColumn = networkGrid.addColumn(Network::getDescription).setHeader("Description");
@@ -178,6 +182,7 @@ public class MainView extends AppLayout {
 
         rightLayout.add(networkGrid);
 
+        // Add left and right layout to the main layout
         mainLayout.addToPrimary(leftLayout);
         mainLayout.addToSecondary(rightLayout);
         mainLayout.addThemeVariants(SplitLayoutVariant.LUMO_SMALL);
