@@ -35,12 +35,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.server.StreamResource;
 import de.wathoserver.vaadin.visjs.network.NetworkDiagram;
+import org.apache.commons.io.IOUtils;
 import org.vaadin.stefan.LazyDownloadButton;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -175,6 +173,7 @@ public class MainView extends AppLayout {
         GridContextMenu<Network> contextMenu = networkGrid.addContextMenu();
         contextMenu.addItem("Edit", this::editNetwork);
         contextMenu.addItem("Download Binary", this::downloadNetworkBinary);
+        contextMenu.addItem("Download Adjacency List", this::downloadAdjacencyList);
         contextMenu.addItem("Download DOT", this::downloadNetworkDOT);
         contextMenu.addItem("Remove", this::removeNetwork);
         contextMenu.addItem("Visualize", this::visualizeNetwork);
@@ -195,6 +194,7 @@ public class MainView extends AppLayout {
 
         setContent(mainLayout);
     }
+
 
     private void editNetwork(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
         if (networkGridContextMenuItemClickEvent.getItem().isPresent()) {
@@ -304,6 +304,29 @@ public class MainView extends AppLayout {
         }
     }
 
+    private void downloadAdjacencyList(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
+        if (networkGrid.getSelectedItems().size() == 0) {
+            Optional<Network> item = networkGridContextMenuItemClickEvent.getItem();
+            if (!item.isPresent()) {
+                return;
+            }
+            Network network = item.get();
+            downloadSingleAdjacencyList(network);
+        } else {
+            for (Network network : networkGrid.getSelectedItems()) {
+                downloadSingleAdjacencyList(network);
+            }
+        }
+    }
+
+    private void downloadSingleAdjacencyList(Network network) {
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Objects.requireNonNull(network.toAdjacencyListString().getBytes()));
+        LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel().replace(" ", "").replace("+", "_") + ".oal", () -> byteArrayInputStream);
+        downloadButton.setVisible(false);
+        rightLayout.add(downloadButton);
+        downloadButton.click();
+    }
+
     private void downloadNetworkDOT(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
         if (networkGrid.getSelectedItems().size() == 0) {
             Optional<Network> item = networkGridContextMenuItemClickEvent.getItem();
@@ -320,7 +343,7 @@ public class MainView extends AppLayout {
     }
 
     private void downloadSingleNetworkDOT(Network network) {
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Objects.requireNonNull(network.toDOT().getBytes()));
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Objects.requireNonNull(network.toDOTString().getBytes()));
         LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel().replace(" ", "").replace("+", "_") + ".gv", () -> byteArrayInputStream);
         downloadButton.setVisible(false);
         rightLayout.add(downloadButton);
@@ -472,7 +495,7 @@ public class MainView extends AppLayout {
 
     private void downloadSingleNetworkBinary(Network network) {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(Objects.requireNonNull(FileManager.networkBinaryBytes(network)));
-        LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel().replace(" ", "").replace("+", "_") + ".bin", () -> byteArrayInputStream);
+        LazyDownloadButton downloadButton = new LazyDownloadButton("Download", () -> network.getLabel().replace(" ", "").replace("+", "_") + ".obin", () -> byteArrayInputStream);
         downloadButton.setVisible(false);
         rightLayout.add(downloadButton);
         downloadButton.click();
@@ -641,8 +664,23 @@ public class MainView extends AppLayout {
         MemoryBuffer memoryBuffer = new MemoryBuffer();
         Upload upload = new Upload(memoryBuffer);
         upload.addSucceededListener(finishedEvent -> {
-            Network network = FileManager.loadNetworkBinary(memoryBuffer.getInputStream());
-            ousi.addNetwork(network, "File -> Open", "Load network with label " + network.getLabel() + ".");
+            Network network;
+            try {
+                if (finishedEvent.getFileName().endsWith(".obin")) {
+                    network = FileManager.loadNetworkBinary(memoryBuffer.getInputStream());
+                    ousi.addNetwork(network, "File -> Open", "Load network with label " + network.getLabel() + ".");
+                } else if (finishedEvent.getFileName().endsWith(".oal")) {
+                    StringWriter writer = new StringWriter();
+                    IOUtils.copy(memoryBuffer.getInputStream(), writer, "UTF-8");
+                    network = Network.fromAdjacencyListString(writer.toString());
+                    ousi.addNetwork(network, "File -> Open", "Load network with label " + network.getLabel() + ".");
+                } else {
+                    Notification.show("File type not supported.");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Notification.show("Error occurred when reading the file!");
+            }
             networkGrid.getDataProvider().refreshAll();
             openDialog.close();
         });

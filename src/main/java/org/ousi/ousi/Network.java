@@ -5,10 +5,7 @@ import de.wathoserver.vaadin.visjs.network.Node;
 import de.wathoserver.vaadin.visjs.network.options.Options;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 
 public class Network implements Serializable {
 
@@ -27,10 +24,10 @@ public class Network implements Serializable {
     private int m = 0;
 
     // Diagram
-    private Settings settings = null;
-    private NetworkDiagram networkDiagram = null;
-    private LinkedList<Node> nodeList = null;
-    private LinkedList<de.wathoserver.vaadin.visjs.network.Edge> edgeList = null;
+    private transient Settings settings = null;
+    private transient NetworkDiagram networkDiagram = null;
+    private transient LinkedList<Node> nodeList = null;
+    private transient LinkedList<de.wathoserver.vaadin.visjs.network.Edge> edgeList = null;
 
     public Network() {
         id = count++;
@@ -67,20 +64,94 @@ public class Network implements Serializable {
         this.description = description;
     }
 
-    private void addVertex() {
-        Vertex vertex = new Vertex();
-        addVertex(vertex);
+    static Network fromAdjacencyListString(String adjacencyListString) throws InputMismatchException {
+        Scanner scanner = new Scanner(adjacencyListString);
+
+        // Read label and description if they exist
+        String label = "";
+        String description = "";
+        if (adjacencyListString.startsWith("[")) {
+            label = scanner.next();
+            label = label.replace("[", "");
+            if (!label.endsWith("]")) {
+                description = scanner.nextLine();
+                description = description.replace("]", "");
+                description = description.replaceFirst(" ", "");
+            } else {
+                label = label.replace("]", "");
+            }
+        }
+
+        // Read whether it is a directed/weighted network
+        int isDirectedInt = scanner.nextInt();
+        boolean isDirected = isDirectedInt == 1;
+        int hasWeightInt = scanner.nextInt();
+        boolean hasWeight = hasWeightInt == 1;
+
+        Network network = new Network(isDirected, hasWeight);
+        if (!label.equals("")) {
+            network.setLabel(label);
+        }
+        network.setDescription(description);
+        scanner.nextLine();
+
+        // Vertex list
+        HashMap<Long, Vertex> vertexMap = new HashMap<>();
+        String line = scanner.nextLine();
+        Scanner vertexScanner = new Scanner(line);
+        while (vertexScanner.hasNextLong()) {
+            Long vertexLabel = vertexScanner.nextLong();
+            Vertex vertex = network.addVertex();
+            vertexMap.put(vertexLabel, vertex);
+        }
+        vertexScanner.close();
+
+        // Edge list
+        while (scanner.hasNextLine()) {
+            line = scanner.nextLine();
+            if (line.equals("")) {
+                break;
+            }
+            Scanner edgeScanner = new Scanner(line);
+            // The first long represents the from vertex.
+            Long fromLabel = edgeScanner.nextLong();
+            Vertex from;
+            if (!vertexMap.containsKey(fromLabel)) {
+                from = network.addVertex();
+                vertexMap.put(fromLabel, from);
+            } else {
+                from = vertexMap.get(fromLabel);
+            }
+            // The following are the to vertices.
+            while (edgeScanner.hasNextLong()) {
+                Long toLabel = edgeScanner.nextLong();
+                Vertex to;
+                if (!vertexMap.containsKey(toLabel)) {
+                    to = network.addVertex();
+                    vertexMap.put(toLabel, to);
+                } else {
+                    to = vertexMap.get(toLabel);
+                }
+                double weight = 0;
+                if (hasWeight) {
+                    weight = edgeScanner.nextDouble();
+                }
+                if (isDirected) {
+                    network.addEdge(from, to, weight);
+                } else {
+                    network.addEdge(from, to, weight);
+                    network.addEdge(to, from, weight);
+                }
+            }
+        }
+        scanner.close();
+        return network;
     }
 
-    void addVertex(Vertex vertex) {
-        if (vertexToEdges.containsKey(vertex)) {
-            return;
-        }
-        vertexToEdges.put(vertex, new HashSet<>());
-        vertexToVertices.put(vertex, new HashSet<>());
-        if (networkDiagram != null && (!settings.getUseDegreeThreshold() || degreeOf(vertex) >= settings.getDegreeThreshold())) {
-            nodeList.add(new Node(String.valueOf(vertex.getId())));
-        }
+    private Vertex addVertex() {
+        Vertex vertex = new Vertex();
+        addVertex(vertex);
+        return vertex;
     }
 
     public void addEdge(Edge edge) {
@@ -184,12 +255,34 @@ public class Network implements Serializable {
         networkDiagram.setEdges(edgeList);
     }
 
-    String toDOT() {
+    Vertex addVertex(Vertex vertex) {
+        if (vertexToEdges.containsKey(vertex)) {
+            return vertex;
+        }
+        vertexToEdges.put(vertex, new HashSet<>());
+        vertexToVertices.put(vertex, new HashSet<>());
+        if (networkDiagram != null && (!settings.getUseDegreeThreshold() || degreeOf(vertex) >= settings.getDegreeThreshold())) {
+            nodeList.add(new Node(String.valueOf(vertex.getId())));
+        }
+        return vertex;
+    }
+
+    boolean getIsDirected() {
+        return isDirected;
+    }
+
+    boolean getHasWeight() {
+        return hasWeight;
+    }
+
+    String toDOTString() {
         StringBuilder DOT = new StringBuilder();
         if (isDirected) {
-            // currently always true
-            // ignore weight for now
-            DOT.append("digraph ").append("G").append(" {\n");
+            DOT.append("digraph ").append("G").append(" {\n  ");
+            for (Vertex vertex : vertexToEdges.keySet()) {
+                DOT.append(vertex.getId()).append(" ; ");
+            }
+            DOT.append("\n");
             for (Vertex from : vertexToEdges.keySet()) {
                 for (Edge edge : getEdges(from)) {
                     Vertex to = edge.getTo();
@@ -204,9 +297,11 @@ public class Network implements Serializable {
             }
             DOT.append("}\n");
         } else {
-            // currently always true
-            // ignore weight for now
-            DOT.append("graph ").append("G").append(" {\n");
+            DOT.append("graph ").append("G").append(" {\n  ");
+            for (Vertex vertex : vertexToEdges.keySet()) {
+                DOT.append(vertex.getId()).append(" ; ");
+            }
+            DOT.append("\n");
             for (Vertex from : vertexToEdges.keySet()) {
                 for (Edge edge : getEdges(from)) {
                     Vertex to = edge.getTo();
@@ -227,11 +322,55 @@ public class Network implements Serializable {
         return DOT.toString();
     }
 
-    boolean getIsDirected() {
-        return isDirected;
-    }
-
-    boolean getHasWeight() {
-        return hasWeight;
+    String toAdjacencyListString() {
+        StringBuilder adjacencyListStringBuilder = new StringBuilder();
+        // Label and description
+        adjacencyListStringBuilder.append("[").append(label).append(" ").append(description).append("]\n");
+        // Whether it's directed/weighted
+        if (isDirected) {
+            adjacencyListStringBuilder.append(1);
+        } else {
+            adjacencyListStringBuilder.append(0);
+        }
+        adjacencyListStringBuilder.append(" ");
+        if (hasWeight) {
+            adjacencyListStringBuilder.append(1);
+        } else {
+            adjacencyListStringBuilder.append(0);
+        }
+        adjacencyListStringBuilder.append("\n");
+        // Vertices
+        boolean first = true;
+        for (Vertex vertex : vertexToEdges.keySet()) {
+            if (first) {
+                first = false;
+            } else {
+                adjacencyListStringBuilder.append(" ");
+            }
+            adjacencyListStringBuilder.append(vertex.getId());
+        }
+        adjacencyListStringBuilder.append("\n");
+        // Edges
+        for (Vertex from : vertexToEdges.keySet()) {
+            first = true;
+            adjacencyListStringBuilder.append(from.getId()).append(" ");
+            for (Edge edge : vertexToEdges.get(from)) {
+                Vertex to = edge.getTo();
+                if (isDirected && from.getId() > to.getId()) {
+                    continue;
+                }
+                if (first) {
+                    first = false;
+                } else {
+                    adjacencyListStringBuilder.append(" ");
+                }
+                adjacencyListStringBuilder.append(to.getId());
+                if (hasWeight) {
+                    adjacencyListStringBuilder.append(" ").append(edge.getWeight());
+                }
+            }
+            adjacencyListStringBuilder.append("\n");
+        }
+        return adjacencyListStringBuilder.toString();
     }
 }
