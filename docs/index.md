@@ -1,37 +1,13 @@
-## Welcome to GitHub Pages
+# Ousi
 
-You can use the [editor on GitHub](https://github.com/leonzhu42/ousi/edit/master/docs/index.md) to maintain and preview the content for your website in Markdown files.
+Ousi is a cross-platform social network analysis software built with web technology. It is written in Java with `Vaadin` to provide the user interface in your browser. Of course you can run it on your local computer. Or you may run it on a cluster and manipulate it with your tablet. So it's both scalable and portable.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+The word "ousi" means the fibers in the root of lotus in Chinese. It is often used as a metaphor of the affection between people. The root of lotus may break apart, whereas the affection keeps. So I'm using this word to remind us of the links between people. I hope SNA researchers will not forget why they initially entered this field. It's the people, not the network or anything else.
 
-### Markdown
+---
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+# 藕丝
 
-```markdown
-Syntax highlighted code block
+藕丝是一款基于网络技术的跨平台社会网络分析软件，由Java语言与`Vaadin`框架写就，以此提供一个能够运行于浏览器中的用户界面。当然，你可以在你的电脑上运行藕丝，但你也可以在集群上来运行这款软件，并在你平板电脑的浏览器中来操作它。从这个角度上来讲，藕丝同时具备了可扩展性和可移动性。
 
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/leonzhu42/ousi/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+“藕丝”，即莲藕中的纤维，常被用来比喻人与人之间的绵绵感情。莲藕折断，藕丝却依旧牵连。这使人想起人与人之间的关系。我希望，社会网络研究者们能够不忘初心。比起社会网络或是其它什么，更重要的，永远是“人”。
