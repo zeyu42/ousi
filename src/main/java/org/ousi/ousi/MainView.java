@@ -28,7 +28,7 @@ import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.validator.StringLengthValidator;
 import com.vaadin.flow.router.Route;
@@ -687,17 +687,17 @@ public class MainView extends AppLayout {
 
     private void showOpenDialog() {
         Dialog openDialog = new Dialog();
-        MemoryBuffer memoryBuffer = new MemoryBuffer();
+        MultiFileMemoryBuffer memoryBuffer = new MultiFileMemoryBuffer();
         Upload upload = new Upload(memoryBuffer);
         upload.addSucceededListener(finishedEvent -> {
             Network network;
             try {
                 if (finishedEvent.getFileName().endsWith(".obin")) {
-                    network = FileManager.loadNetworkBinary(memoryBuffer.getInputStream());
+                    network = FileManager.loadNetworkBinary(memoryBuffer.getInputStream(finishedEvent.getFileName()));
                     ousi.addNetwork(network, "File -> Open", "Load network with label " + network.getLabel() + ".");
                 } else if (finishedEvent.getFileName().endsWith(".oal")) {
                     StringWriter writer = new StringWriter();
-                    IOUtils.copy(memoryBuffer.getInputStream(), writer, "UTF-8");
+                    IOUtils.copy(memoryBuffer.getInputStream(finishedEvent.getFileName()), writer, "UTF-8");
                     network = Network.fromAdjacencyListString(writer.toString());
                     ousi.addNetwork(network, "File -> Open", "Load network with label " + network.getLabel() + ".");
                 } else {
