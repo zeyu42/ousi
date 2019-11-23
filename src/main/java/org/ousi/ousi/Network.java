@@ -17,8 +17,8 @@ public class Network implements Serializable {
     private boolean isDirected;
     private boolean hasWeight;
 
-    private HashMap<Vertex, HashSet<Edge>> vertexToEdges;
-    private HashMap<Vertex, HashSet<Vertex>> vertexToVertices;
+    private LinkedHashMap<Vertex, HashSet<Edge>> vertexToEdges; // Use LinkedHashMap to make sure the order of iteration is the same as the order the items were inserted
+    private LinkedHashMap<Vertex, HashSet<Vertex>> vertexToVertices;
 
     // Number of edges
     private int m = 0;
@@ -34,8 +34,8 @@ public class Network implements Serializable {
         label = ((Integer)id).toString();
         isDirected = true;
         hasWeight = false;
-        vertexToEdges = new HashMap<>();
-        vertexToVertices = new HashMap<>();
+        vertexToEdges = new LinkedHashMap<>();
+        vertexToVertices = new LinkedHashMap<>();
     }
 
     public Network(boolean isDirected) {
@@ -62,6 +62,15 @@ public class Network implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isSimple() {
+        for (Vertex vertex : vertexToEdges.keySet()) {
+            if (vertexToEdges.get(vertex).size() > vertexToVertices.get(vertex).size()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     static Network fromAdjacencyListString(String adjacencyListString) throws InputMismatchException {

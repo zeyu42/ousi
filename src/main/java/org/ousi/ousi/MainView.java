@@ -126,6 +126,7 @@ public class MainView extends AppLayout {
         MenuItem analyzeMenuItem = menu.addItem("Analyze");
         SubMenu analyzeSubMenu = analyzeMenuItem.getSubMenu();
         analyzeSubMenu.addItem("Density", event -> computeDensity());
+        analyzeSubMenu.addItem("QAP", event -> computeQAP());
 
         // Help...
         MenuItem helpMenuItem = menu.addItem("Help");
@@ -143,9 +144,11 @@ public class MainView extends AppLayout {
 
         Accordion outputAccordion = new Accordion();
         ousi.setOutputAccordion(outputAccordion);
+        VerticalLayout accordionLayout = new VerticalLayout(outputAccordion); // Use it only because I want a padding around the accordion
+        accordionLayout.setPadding(true);
         // By default, the visualization part is only one pane.
         leftLayout.addToPrimary(networkDiagram1);
-        leftLayout.addToSecondary(outputAccordion);
+        leftLayout.addToSecondary(accordionLayout);
         leftLayout.addThemeVariants(SplitLayoutVariant.LUMO_SMALL);
 
         // Add the two diagrams to the visualization split layout but don't add the layout to the left layout.
@@ -194,6 +197,7 @@ public class MainView extends AppLayout {
 
         setContent(mainLayout);
     }
+
 
 
     private void editNetwork(GridContextMenu.GridContextMenuItemClickEvent<Network> networkGridContextMenuItemClickEvent) {
@@ -438,6 +442,7 @@ public class MainView extends AppLayout {
         Button OKButton = new Button("OK", event -> {
             ousi.getSettings().setUseDegreeThreshold(useDegreeThresholdCheckbox.getValue());
             ousi.getSettings().setDegreeThreshold(degreeThresholdNumberField.getValue().intValue());
+
             ousi.getSettings().writeSettings();
             networkDiagram1 = network1.getNetworkDiagram(true, ousi.getSettings());
             networkDiagram2 = network2.getNetworkDiagram(true, ousi.getSettings());
@@ -455,6 +460,27 @@ public class MainView extends AppLayout {
     private void computeDensity() {
         for (Network network : networkGrid.getSelectedItems()) {
             ousi.addToAccordion("Analyze -> Density", Analyzer.densityString(network));
+        }
+    }
+
+    private void computeQAP() {
+        if (networkGrid.getSelectedItems().size() == 2) {
+            boolean first = true;
+            Network network1 = null;
+            Network network2 = null;
+            for (Network network : networkGrid.getSelectedItems()) {
+                if (first) {
+                    network1 = network;
+                    first = false;
+                } else {
+                    network2 = network;
+                }
+            }
+            assert network1 != null;
+            assert network2 != null;
+            ousi.addToAccordion("Analyze -> QAP", Analyzer.QAPString(network1, network2));
+        } else {
+            Notification.show("Please select two network for QAP analysis.");
         }
     }
 
