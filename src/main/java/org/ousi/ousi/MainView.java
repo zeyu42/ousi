@@ -114,6 +114,8 @@ public class MainView extends AppLayout {
                 e.printStackTrace();
             }
             leftLayout.addToPrimary(visualizeSplitLayout);
+            visualizeSplitLayout.addToPrimary(networkDiagram1);
+            visualizeSplitLayout.addToSecondary(networkDiagram2);
         });
 
         // Transform...
