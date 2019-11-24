@@ -2,7 +2,8 @@
 
 Functionalities Ousi provides include network generation, transformation, analysis, and visualization. Plus, it is possible to save a network to your local disk and load it again next time. You can also write your own network in Ousi Adjacency List format and open it in Ousi.
 
-* TOC {:toc}
+* TOC
+{:toc}
 
 ## Basics
 
@@ -96,7 +97,7 @@ A Ousi Adjacency List Format is a file format used by Ousi to represent a networ
 
 An example is given as follows.
 
-![Sample network]({{ site.url }}/images/a.png)
+![Sample network](leonzhu42.github.io/ousi/images/a.png)
 
 For the network above, the Ousi Adjacency List Format file will look like this:
 
