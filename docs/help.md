@@ -97,7 +97,7 @@ A Ousi Adjacency List Format is a file format used by Ousi to represent a networ
 
 An example is given as follows.
 
-![Sample network](/images/a.png)
+<img src="/images/a.png" alt="Sample network" width="200">
 
 For the network above, the Ousi Adjacency List Format file will look like this:
 
