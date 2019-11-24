@@ -16,7 +16,6 @@ import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -93,8 +92,8 @@ public class MainView extends AppLayout {
         // Generate...
         MenuItem generateMenuItem = menu.addItem("Generate");
         SubMenu generateSubMenu = generateMenuItem.getSubMenu();
-        generateSubMenu.addItem("Complete Network", event -> showCreateCompleteNetworkDialog());
-        generateSubMenu.addItem("Random Network", event -> showCreateRandomNetworkDialog());
+        generateSubMenu.addItem("Complete network", event -> showCreateCompleteNetworkDialog());
+        generateSubMenu.addItem("Random network", event -> showCreateRandomNetworkDialog());
 
         // Visualize...
         MenuItem visualizeMenuItem = menu.addItem("Visualize");
@@ -133,8 +132,8 @@ public class MainView extends AppLayout {
         // Help...
         MenuItem helpMenuItem = menu.addItem("Help");
         SubMenu helpSubMenu = helpMenuItem.getSubMenu();
-        helpSubMenu.addItem("Help");
-        helpSubMenu.addItem("About", event -> showAboutDialog());
+        MenuItem helpItem = helpSubMenu.addItem("Help", event -> UI.getCurrent().getPage().open("https://leonzhu42.github.io/ousi/help.html"));
+        helpSubMenu.addItem("About", event -> UI.getCurrent().getPage().open("https://leonzhu42.github.io/ousi/index"));
 
         addToNavbar(true, logoImage, menu);
 
@@ -676,15 +675,6 @@ public class MainView extends AppLayout {
 
         createRandomNetworkDialog.add(layout, buttonLayout);
         createRandomNetworkDialog.open();
-    }
-
-    private static void showAboutDialog() {
-        Dialog aboutDialog = new Dialog();
-        VerticalLayout layout = new VerticalLayout();
-        layout.add(new Label("藕丝：一款自由的社会网络分析软件。"));
-        layout.add(new Button("OK", event -> aboutDialog.close()));
-        aboutDialog.add(layout);
-        aboutDialog.open();
     }
 
     private void showOpenDialog() {

@@ -53,6 +53,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.vaadin.olli</groupId>
+            <artifactId>browser-opener</artifactId>
+            <version>0.4</version>
+        </dependency>
+        <dependency>
             <groupId>org.vaadin.stefan</groupId>
             <artifactId>lazy-download-button</artifactId>
             <version>1.0.0</version>
@@ -61,16 +66,6 @@
             <groupId>de.wathoserver.vaadin</groupId>
             <artifactId>visjs-vaadin-component</artifactId>
             <version>0.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jgrapht</groupId>
-            <artifactId>jgrapht-core</artifactId>
-            <version>1.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jgrapht</groupId>
-            <artifactId>jgrapht-io</artifactId>
-            <version>1.3.1</version>
         </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
