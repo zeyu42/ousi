@@ -6,6 +6,8 @@ The word "ousi" means the fibers in the root of lotus in Chinese. It is often us
 
 Currently, Ousi is not ready for production. However, testing it is quite simple. Clone this project, and run `mvn jetty:run`. That's all!
 
+To look into what Ousi can do in depth, see here: [Help](https://leonzhu42.github.io/ousi/help.html).
+
 ---
 
 # 藕丝
@@ -15,3 +17,5 @@ Currently, Ousi is not ready for production. However, testing it is quite simple
 “藕丝”，即莲藕中的纤维，常被用来比喻人与人之间的绵绵感情。莲藕折断，藕丝却依旧牵连。这使人想起人与人之间的关系。我希望，社会网络研究者们能够不忘初心。比起社会网络或是其它什么，更重要的，永远是“人”。
 
 目前而言，藕丝还未达到适合发布的阶段。然而，如果你想测试一下，却是再简单不过的了。克隆这个项目，然后在终端运行`mvn jetty:run`。这样就好了！
+
+想要深入了解藕丝都能做些什么，点击这里：[帮助](https://leonzhu42.github.io/ousi/help.html)。
