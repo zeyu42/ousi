@@ -3,15 +3,7 @@ package org.ousi.ousi;
 
 import java.io.*;
 
-public class FileManager {
-
-    static public void networkDOTBytes(Network network) {
-
-    }
-
-    static public void networkCSVBytes(Network network) {
-
-    }
+class FileManager {
 
     static byte[] networkBinaryBytes(Network network) {
         try {
@@ -24,14 +16,6 @@ public class FileManager {
             e.printStackTrace();
             return null;
         }
-    }
-
-    static public Network loadNetworkDOT(InputStream inputStream) {
-        return null;
-    }
-
-    static public Network loadNetworkCSV(InputStream inputStream) {
-        return null;
     }
 
     static Network loadNetworkBinary(InputStream inputStream) {
