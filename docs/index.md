@@ -6,7 +6,7 @@ The word "ousi" means the fibers in the root of lotus in Chinese. It is often us
 
 Currently, Ousi is not ready for production. However, testing it is quite simple. Make sure you have `maven` and `nodejs` installed. Clone this project, and run `mvn jetty:run`. That's all!
 
-To look into what Ousi can do in depth, see here: [Help](https://leonzhu42.github.io/ousi/help.html).
+To look into what Ousi can do in depth, see here: [Help](https://zeyu42.github.io/ousi/help.html).
 
 ---
 
@@ -18,4 +18,4 @@ To look into what Ousi can do in depth, see here: [Help](https://leonzhu42.githu
 
 目前而言，藕丝还未达到适合发布的阶段。然而，如果你想测试一下，却是再简单不过的了。首先确保你安装了`maven`和`nodejs`。克隆这个项目，然后在终端运行`mvn jetty:run`。这样就好了！
 
-想要深入了解藕丝都能做些什么，点击这里：[帮助](https://leonzhu42.github.io/ousi/help.html)。
+想要深入了解藕丝都能做些什么，点击这里：[帮助](https://zeyu42.github.io/ousi/help.html)。
